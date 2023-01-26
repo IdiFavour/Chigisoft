@@ -24,15 +24,28 @@ app.use(express.json());
 
 app.post("/create", (req, res) => {
   const { email, username, password } = req.body;
-  bcrypt.hash(password, 10, (err, hash) => {
+
+  // check if email address already exists
+  const emailCheck = `SELECT * FROM users WHERE email = '${email}'`;
+  db.query(emailCheck, (err, result) => {
     if (err) throw err;
-    const query = `INSERT INTO users (email, username, password) VALUES ('${email}', '${username}', '${hash}')`;
-    db.query(query, (err, result) => {
+    if (result.length > 0) {
+      return res.status(400).json({
+        message: "Email address already in use",
+      });
+    }
+
+    bcrypt.hash(password, 10, (err, hash) => {
       if (err) throw err;
-      res.status(200).json({ message: "Account created successfully" });
+      const query = `INSERT INTO users (email, username, password) VALUES ('${email}', '${username}', '${hash}')`;
+      db.query(query, (err, result) => {
+        if (err) throw err;
+        res.status(200).json({ message: "Account created successfully" });
+      });
     });
   });
 });
+
 
 //fund
 app.post("/fund", (req, res) => {
