@@ -1,4 +1,5 @@
 # Chigisoft
+This project was done using nodejs, express, typescript and jest. The database was created using xampp. To run this project:
 Clone the repository in to your pc and open with your prefered code editor. 
 
 # Database
