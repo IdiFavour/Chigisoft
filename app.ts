@@ -30,7 +30,7 @@ app.post("/create", (req, res) => {
   db.query(emailCheck, (err, result) => {
     if (err) throw err;
     if (result.length > 0) {
-      return res.status(400).json({
+      return res.status(401).json({
         message: "Email address already in use",
       });
     }
@@ -40,12 +40,11 @@ app.post("/create", (req, res) => {
       const query = `INSERT INTO users (email, username, password) VALUES ('${email}', '${username}', '${hash}')`;
       db.query(query, (err, result) => {
         if (err) throw err;
-        res.status(200).json({ message: "Account created successfully" });
+        res.status(201).json({ message: "Account created successfully" });
       });
     });
   });
 });
-
 
 //fund
 app.post("/fund", (req, res) => {
@@ -106,28 +105,31 @@ app.post("/login", (req, res) => {
 });
 
 //protected
-// app.use((req, res, next) => {
-//   const token = req.headers["authorization"];
-//   if (token) {
-//     jwt.verify(token, SECRET_KEY, (err, decoded) => {
-//       if (err) {
-//         res.status(401).json({ message: "Invalid token" });
-//       } else {
-//         req.decoded = decoded;
-//         next();
-//       }
-//     });
-//   } else {
-//     res.status(401).json({ message: "No token provided" });
-//   }
-// });
+app.use((req, res, next) => {
+  const token = req.headers["authorization"].split(" ")[1];
+  console.log(token);
 
-// app.get("/protected", (req, res) => {
-//   res.status(200).json({ message: "Protected route accessed" });
-// });
+  if (token) {
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+      if (err) {
+        res.status(401).json({ message: "Invalid token", err });
+      } else {
+        req.decoded = decoded;
+        next();
+      }
+    });
+  } else {
+    res.status(401).json({ message: "No token provided" });
+  }
+});
+
+app.get("/protected", (req, res) => {
+  res.status(200).json({ message: "Protected route accessed" });
+});
 
 const PORT = 3000;
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 });
+module.exports = app;
